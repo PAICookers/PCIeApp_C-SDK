@@ -1,0 +1,22 @@
+[
+{
+  "directory": "/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/build",
+  "command": "/usr/bin/gcc  -I/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/include -g -std=gnu11 -o CMakeFiles/pcie_app.dir/main.c.o -c /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/main.c",
+  "file": "/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/main.c"
+},
+{
+  "directory": "/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/build",
+  "command": "/usr/bin/gcc  -I/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/include -g -std=gnu11 -o CMakeFiles/pcie_app.dir/src/dma2device.c.o -c /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma2device.c",
+  "file": "/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma2device.c"
+},
+{
+  "directory": "/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/build",
+  "command": "/usr/bin/gcc  -I/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/include -g -std=gnu11 -o CMakeFiles/pcie_app.dir/src/dma_utils.c.o -c /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma_utils.c",
+  "file": "/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma_utils.c"
+},
+{
+  "directory": "/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/build",
+  "command": "/usr/bin/gcc  -I/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/include -g -std=gnu11 -o CMakeFiles/pcie_app.dir/src/utils.c.o -c /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/utils.c",
+  "file": "/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/utils.c"
+}
+]

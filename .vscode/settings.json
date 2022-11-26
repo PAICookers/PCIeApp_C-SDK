@@ -1,0 +1,24 @@
+{
+    "files.associations": {
+        "*.v": "systemverilog",
+        "dma_utils.h": "c",
+        "utils.h": "c",
+        "types.h": "c",
+        "mman.h": "c",
+        "*.tcc": "c",
+        "map": "c",
+        "functional": "c",
+        "config.h": "c",
+        "time.h": "c",
+        "getopt.h": "c",
+        "fcntl.h": "c",
+        "dma2device.h": "c",
+        "unistd.h": "c",
+        "stat.h": "c",
+        "errno.h": "c"
+    },
+    "C_Cpp.default.includePath": [
+        "./include"
+    ],
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+}

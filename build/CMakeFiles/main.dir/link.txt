@@ -1,0 +1,1 @@
+/usr/bin/gcc -g CMakeFiles/main.dir/main.c.o CMakeFiles/main.dir/dma_utils/dma2device.c.o CMakeFiles/main.dir/dma_utils/dma_utils.c.o -o main 
