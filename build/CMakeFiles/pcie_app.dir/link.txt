@@ -1,1 +1,0 @@
-/usr/bin/cc CMakeFiles/pcie_app.dir/main.c.o CMakeFiles/pcie_app.dir/src/dma2device.c.o CMakeFiles/pcie_app.dir/src/dma_utils.c.o CMakeFiles/pcie_app.dir/src/utils.c.o -o pcie_app 

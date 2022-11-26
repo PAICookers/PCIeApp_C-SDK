@@ -1,3 +1,0 @@
-/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/build/CMakeFiles/pcie_app.dir
-/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/build/CMakeFiles/edit_cache.dir
-/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/build/CMakeFiles/rebuild_cache.dir
