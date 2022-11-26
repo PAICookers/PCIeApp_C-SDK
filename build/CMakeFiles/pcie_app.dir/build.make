@@ -73,57 +73,57 @@ CMakeFiles/pcie_app.dir/main.c.o: CMakeFiles/pcie_app.dir/flags.make
 CMakeFiles/pcie_app.dir/main.c.o: /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/main.c
 CMakeFiles/pcie_app.dir/main.c.o: CMakeFiles/pcie_app.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/pcie_app.dir/main.c.o"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/pcie_app.dir/main.c.o -MF CMakeFiles/pcie_app.dir/main.c.o.d -o CMakeFiles/pcie_app.dir/main.c.o -c /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/main.c
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/pcie_app.dir/main.c.o -MF CMakeFiles/pcie_app.dir/main.c.o.d -o CMakeFiles/pcie_app.dir/main.c.o -c /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/main.c
 
 CMakeFiles/pcie_app.dir/main.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/pcie_app.dir/main.c.i"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/main.c > CMakeFiles/pcie_app.dir/main.c.i
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/main.c > CMakeFiles/pcie_app.dir/main.c.i
 
 CMakeFiles/pcie_app.dir/main.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/pcie_app.dir/main.c.s"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/main.c -o CMakeFiles/pcie_app.dir/main.c.s
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/main.c -o CMakeFiles/pcie_app.dir/main.c.s
 
 CMakeFiles/pcie_app.dir/src/dma2device.c.o: CMakeFiles/pcie_app.dir/flags.make
 CMakeFiles/pcie_app.dir/src/dma2device.c.o: /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma2device.c
 CMakeFiles/pcie_app.dir/src/dma2device.c.o: CMakeFiles/pcie_app.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/pcie_app.dir/src/dma2device.c.o"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/pcie_app.dir/src/dma2device.c.o -MF CMakeFiles/pcie_app.dir/src/dma2device.c.o.d -o CMakeFiles/pcie_app.dir/src/dma2device.c.o -c /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma2device.c
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/pcie_app.dir/src/dma2device.c.o -MF CMakeFiles/pcie_app.dir/src/dma2device.c.o.d -o CMakeFiles/pcie_app.dir/src/dma2device.c.o -c /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma2device.c
 
 CMakeFiles/pcie_app.dir/src/dma2device.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/pcie_app.dir/src/dma2device.c.i"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma2device.c > CMakeFiles/pcie_app.dir/src/dma2device.c.i
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma2device.c > CMakeFiles/pcie_app.dir/src/dma2device.c.i
 
 CMakeFiles/pcie_app.dir/src/dma2device.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/pcie_app.dir/src/dma2device.c.s"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma2device.c -o CMakeFiles/pcie_app.dir/src/dma2device.c.s
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma2device.c -o CMakeFiles/pcie_app.dir/src/dma2device.c.s
 
 CMakeFiles/pcie_app.dir/src/dma_utils.c.o: CMakeFiles/pcie_app.dir/flags.make
 CMakeFiles/pcie_app.dir/src/dma_utils.c.o: /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma_utils.c
 CMakeFiles/pcie_app.dir/src/dma_utils.c.o: CMakeFiles/pcie_app.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/pcie_app.dir/src/dma_utils.c.o"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/pcie_app.dir/src/dma_utils.c.o -MF CMakeFiles/pcie_app.dir/src/dma_utils.c.o.d -o CMakeFiles/pcie_app.dir/src/dma_utils.c.o -c /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma_utils.c
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/pcie_app.dir/src/dma_utils.c.o -MF CMakeFiles/pcie_app.dir/src/dma_utils.c.o.d -o CMakeFiles/pcie_app.dir/src/dma_utils.c.o -c /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma_utils.c
 
 CMakeFiles/pcie_app.dir/src/dma_utils.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/pcie_app.dir/src/dma_utils.c.i"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma_utils.c > CMakeFiles/pcie_app.dir/src/dma_utils.c.i
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma_utils.c > CMakeFiles/pcie_app.dir/src/dma_utils.c.i
 
 CMakeFiles/pcie_app.dir/src/dma_utils.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/pcie_app.dir/src/dma_utils.c.s"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma_utils.c -o CMakeFiles/pcie_app.dir/src/dma_utils.c.s
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/dma_utils.c -o CMakeFiles/pcie_app.dir/src/dma_utils.c.s
 
 CMakeFiles/pcie_app.dir/src/utils.c.o: CMakeFiles/pcie_app.dir/flags.make
 CMakeFiles/pcie_app.dir/src/utils.c.o: /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/utils.c
 CMakeFiles/pcie_app.dir/src/utils.c.o: CMakeFiles/pcie_app.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/pcie_app.dir/src/utils.c.o"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/pcie_app.dir/src/utils.c.o -MF CMakeFiles/pcie_app.dir/src/utils.c.o.d -o CMakeFiles/pcie_app.dir/src/utils.c.o -c /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/utils.c
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/pcie_app.dir/src/utils.c.o -MF CMakeFiles/pcie_app.dir/src/utils.c.o.d -o CMakeFiles/pcie_app.dir/src/utils.c.o -c /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/utils.c
 
 CMakeFiles/pcie_app.dir/src/utils.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/pcie_app.dir/src/utils.c.i"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/utils.c > CMakeFiles/pcie_app.dir/src/utils.c.i
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/utils.c > CMakeFiles/pcie_app.dir/src/utils.c.i
 
 CMakeFiles/pcie_app.dir/src/utils.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/pcie_app.dir/src/utils.c.s"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/utils.c -o CMakeFiles/pcie_app.dir/src/utils.c.s
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kafcoppelia/WORK/PAICORE/PAICORE-dev/PCIeApp_C-SDK/src/utils.c -o CMakeFiles/pcie_app.dir/src/utils.c.s
 
 # Object files for target pcie_app
 pcie_app_OBJECTS = \
