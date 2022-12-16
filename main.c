@@ -27,7 +27,7 @@ static void usage(const char* name) {
 	fprintf(stdout, "usage: %s [OPTIONS]\n\n", name);
 
     fprintf(stdout, "  -%c (--%s) device (defaults to %s)\n",
-		long_opts[i].val, long_opts[i].name, DEVICE_NAME_DEFAULT);
+		long_opts[i].val, long_opts[i].name, H2C_DEVICE_NAME_DEFAULT);
 	i++;
     fprintf(stdout, "  -%c (--%s) user registers name (defaults to %s)\n",
 		long_opts[i].val, long_opts[i].name, USER_REG_NAME_DEFAULT);
@@ -60,7 +60,7 @@ static void usage(const char* name) {
 
 int main(int argc, char *argv[]) {
     int cmd_opt;
-    char* dev_name = DEVICE_NAME_DEFAULT;
+    char* dev_name = H2C_DEVICE_NAME_DEFAULT;
     char* user_reg = USER_REG_NAME_DEFAULT;
     char* irq_ch1_name = IRQ_CH1_NAME_DEFAULT;
     
@@ -122,14 +122,17 @@ int main(int argc, char *argv[]) {
 
     if (verbose) {
         fprintf(stdout, "device: %s,\nuser registers: %s,\nmode: %d,\nirq_ch1_name: %s,\ninitFrmNum: %d,\nconfigFramePath: %s,\nworkFramePath: %s,\noutputFramePath: %s\n\n", 
-            dev_name, user_reg, mode, initFrmNum, irq_ch1_name, configFramePath, workFramePath, outputFramePath);
+            dev_name, user_reg, mode, irq_ch1_name, initFrmNum, configFramePath, workFramePath, outputFramePath);
     }
 
+    /*
+        Currently, a transaction use an individual program
+    */
     if (mode == FPGA_MODE_CONFIG) {
-        return configframes_to_device(dev_name, user_reg, irq_ch1_name, configFramePath, 0);
+        return frames2device(dev_name, user_reg, irq_ch1_name, configFramePath, mode);
     }
     else if (mode == FPGA_MODE_WORK){
-        return 0;
+        return frames2device(dev_name, user_reg, irq_ch1_name, workFramePath, mode);
     }
     
     return -1;

@@ -40,7 +40,8 @@ uint64_t getopt_integer(char *optarg);
 
 void writeUser(void *baseAddr, off_t offset, uint32_t val);
 uint32_t readUser(void *baseAddr, off_t offset);
-int eventTriggered(int fd, irq_e irq, long timeout);
+int checkTXCompleted(void *baseAddr, long timeout);
+int eventTriggered(int fd, irq_e irq);
 
 #ifdef IN_PROD
 void clearIRQ(void *baseAddr, int irq);
@@ -69,7 +70,6 @@ void readC2H(int fd, uint64_t baseAddr, void *frameBufferPtr, size_t size);
 ///////////////////////////////////////////////// general
 
 frame char2frame(char *frame);
-off_t getFileSize(const char *filename);
 int openFrame(char *filePath);
 int read_txt_to_frame(int fd, configFrames *frameBufferPtr, size_t frameNumber);
 int readStartFrame(int fd, frame *startFrame);

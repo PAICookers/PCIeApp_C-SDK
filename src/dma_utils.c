@@ -28,28 +28,16 @@ extern int verbose;
 	@param size: The size of what to read in bytes
 	@param base: Usually is 0
 */
-ssize_t read_to_buffer(char *fname, int fd, frame *buffer, uint64_t size, uint64_t base)
+ssize_t read_txt_to_buffer(char *fname, int fd, frame *buffer, uint64_t size, uint64_t base)
 {
 	ssize_t rc;
-	uint64_t count = 0;
+	uint64_t count = 0; // size in bytes
 	frame* buf = buffer;
 	off_t offset = base;
 	int loop = 0;
-#ifdef TXT_MODE
-	char txt_buf[65];
-#endif
+	char txt_buf[READ_ONE_LINE];
 
 	while (count < size) {
-		uint64_t bytes = size - count;
-
-#ifdef TXT_MODE
-		if (bytes > READ_ONE_LINE)
-			bytes = READ_ONE_LINE;
-#else
-		if (bytes > RW_MAX_SIZE)
-			bytes = RW_MAX_SIZE;
-#endif
-
 		if (offset) {
 			rc = lseek(fd, offset, SEEK_SET);
 			if (rc != offset) {
@@ -60,36 +48,29 @@ ssize_t read_to_buffer(char *fname, int fd, frame *buffer, uint64_t size, uint64
 			}
 		}
 
-		/* read data from file into memory buffer */
-#ifdef TXT_MODE
-		rc = read(fd, (void*)txt_buf, bytes);
-#else
-		rc = read(fd, (void*)buf, bytes);
-#endif
+		/* read data from file into txt buffer */
+		rc = read(fd, (void*)txt_buf, READ_ONE_LINE);
+
 		if (rc < 0) {
-			fprintf(stderr, "%s, read 0x%lx @ 0x%lx failed %ld.\n",
-				fname, bytes, offset, rc);
+			fprintf(stderr, "%s, read 65 @ 0x%lx failed %ld.\n",
+				fname, offset, rc);
 			perror("read file");
 			return -EIO;
 		}
 
-		if (rc != bytes) {
-			fprintf(stderr, "%s, read underflow 0x%lx/0x%lx @ 0x%lx.\n",
-				fname, rc, bytes, offset);
+		if (rc != READ_ONE_LINE) {
+			fprintf(stderr, "%s, read underflow 65/0x%lx @ 0x%lx.\n",
+				fname, rc, offset);
 			break;
 		}
 
-#ifdef TXT_MODE
 		txt_buf[READ_ONE_LINE-1] = '\0';
-		buf = (frame*)strtoul(txt_buf, NULL, 2);
-		count += 8;
-		buf += 8;
-#else
-		count += rc;
-		buf += bytes;
-#endif
+		*buf = (frame)strtoul(txt_buf, NULL, 2);
 		
-		offset += bytes;
+		count += BYTES_IN_ONE_LINE;
+		buf += 1;
+		
+		offset += READ_ONE_LINE;
 		loop++;
 	}
 
@@ -150,7 +131,6 @@ ssize_t write_from_buffer(char *fname, int fd, frame *buffer, uint64_t size, uin
 		}
 
 		buf += bytes;
-		
 		offset += bytes;
 		loop++;
 	}	
@@ -173,8 +153,8 @@ ssize_t write_from_buffer(char *fname, int fd, frame *buffer, uint64_t size, uin
 	@param base: Base offset of H2C device, DOWNSTREAM_BRAM_CH1_ADDR
 	@param size: The size of what to write in bytes
 */
-ssize_t write_h2c_with_limit(char *fname, int fd, void *user_addr, int irq_fd, frameBuffer *buffer,	\
-	uint64_t base, uint64_t max_limit)
+ssize_t write_h2c_with_limit(char *fname, int fd, void *user_addr, int irq_fd, \
+	frameBuffer *buffer, uint64_t base, uint64_t max_limit)
 {
 	ssize_t rc;
 	uint64_t size = buffer->size;
@@ -200,7 +180,7 @@ ssize_t write_h2c_with_limit(char *fname, int fd, void *user_addr, int irq_fd, f
 			}
 		}
 
-		/* write data to file from memory buffer */
+		/* write data to h2c from memory buffer */
 		rc = write(fd, buf, bytes);
 		if (rc < 0) {
 			fprintf(stderr, "%s, write 0x%lx @ 0x%lx failed %ld.\n",
@@ -216,39 +196,65 @@ ssize_t write_h2c_with_limit(char *fname, int fd, void *user_addr, int irq_fd, f
 			break;
 		}
 
-		buf += bytes;
+		buf += bytes/BYTES_IN_ONE_LINE;
 		offset += bytes;
 		loop++;
 
-		/* Send stop frame when count == size */
+		/* Send stop frame when ALL frames sending to card is completed. */
 		if (count == size) {
-			rc = write_from_buffer(fname, fd, (frame*)&stop_frame, 8, 0);
+			/* Set the cursor at the end */
+			rc = lseek(fd, offset, SEEK_SET);
+			if (rc != offset) {
+				fprintf(stderr, "%s, seek off 0x%lx != 0x%lx.\n",
+					fname, rc, offset);
+				perror("seek file");
+				return -EIO;
+			}
+
+			rc = write(fd, &stop_frame, 8);
 			if (rc < 0) {
 				fprintf(stderr, "Sending stop frame failed.\n");
 				return -EIO;
 			}
+			
+			if (verbose)
+				fprintf(stdout, "Sending stop frame successful.\n");
 		}
-
+			
 		/* 1. When sending max_limit, tell FPGA to steart sending */
-		writeUser(user_addr, TX_REG_OFFSET, TX_STATUS_SENDING);
+		writeUser(user_addr, TX_STATUS_RW_ADDR, REQ_TX_SENDING);
 
 		/* 2. Read the interrupt and do service */
-		rc = eventTriggered(irq_fd, IRQ_TX_CH1_DONE, IRQ_TIGGERED_TIMEOUT);
+		// fprintf(stdout, "Reading interrupt IRQ_TX_CH1_DONE.\n");
+		// rc = eventTriggered(irq_fd, IRQ_TX_CH1_DONE);
+		// if (rc < 0) {
+		// 	fprintf(stderr, "Interrupt %d triggered failed.\n", IRQ_TX_CH1_DONE);
+		// 	return -EIO;
+		// }
+
+		/* Poll check TX DONE */
+		rc = checkTXCompleted(user_addr, IRQ_TIGGERED_TIMEOUT);
 		if (rc < 0) {
-			fprintf(stderr, "Interrupt %d triggered failed.\n", IRQ_TX_CH1_DONE);
+			fprintf(stderr, "Got TX done failed.\n");
 			return -EIO;
 		}
 
 		/* 3. Clear the interrupt */
-		clearIRQ(user_addr, IRQ_TX_CH1_DONE);
+		// clearIRQ(user_addr, IRQ_TX_CH1_DONE);
 
 		if (verbose) {
-			fprintf(stdout, "Send %d bytes successful.\n", count);
+			fprintf(stdout, "Loop #%d: Send %ld frames(%ld bytes) successful.\n", loop, count/BYTES_IN_ONE_LINE, count);
+		}
+
+		if (offset - base >= DOWNSTREAM_BRAM_SIZE) {
+			offset = base;
 		}
 	}
 
 	if (count != size && loop)
 		fprintf(stderr, "%s, write underflow 0x%lx/0x%lx.\n", fname, count, size);
+	else
+		fprintf(stdout, "TX transaction completed!\n");
 
 	return count;
 }
@@ -267,9 +273,33 @@ ssize_t write_h2c_with_limit(char *fname, int fd, void *user_addr, int irq_fd, f
 */
 ssize_t single_channel_send(char *fname, int fpga_fd, void *user_addr, int irq_fd, uint64_t addr, frameBuffer *buffer) {
 	ssize_t rc;
+	uint32_t _read, tx_frames_num;
 
+	/* ceil() */
+	tx_frames_num = (buffer->size + DOWNSTREAM_BRAM_SIZE/2) / DOWNSTREAM_BRAM_SIZE;
+
+	if (verbose) {
+		fprintf(stdout, "%d loop(s) will be sent.\n", tx_frames_num);
+	}
+
+	_read = readUser(user_addr, TRANS_INFO_RW_ADDR);
+
+	/* Set the # of frames that will be sent. */
+	writeUser(user_addr, TRANS_INFO_RW_ADDR, (_read & 0xFFFFFF00) | tx_frames_num);
+	
 	rc = write_h2c_with_limit(fname, fpga_fd, user_addr, irq_fd, buffer, addr, DOWNSTREAM_BRAM_SIZE);
-	return rc; // Just return rc.
+	_read = readUser(user_addr, TRANS_INFO_RW_ADDR);
+
+	/*
+		A TX transaction fails when:
+		1. # of sent frames is NOT correct.
+		2. The rest loops is NOT 0.
+	*/
+	if ((rc != buffer->size) || (_read & 0x000000FF != 0)) {
+		fprintf(stderr, "write failed. Actual wrote: %ld.\nLoop(s) left: %d\n", rc, _read & 0x000000FF);
+	}
+
+	return rc;
 }
 
 /*

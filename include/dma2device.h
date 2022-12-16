@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-int configframes_to_device(char *devname, char *user_reg, char *irq_ch1, char *infname, uint64_t offset);
+int frames2device(char *devname, char *user_reg, char *irq_ch1, char *infname, int work_mode);
 
 #ifdef __cplusplus
 }

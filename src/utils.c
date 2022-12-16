@@ -6,14 +6,26 @@
 
 #include <sys/stat.h>
 
-static int timespec_check(struct timespec *t);
-static void timespec_sub(struct timespec *t1, struct timespec *t2);
-
 #ifdef IN_DEV
 int verbose = 1;
 #else
 int verbose = 0;
 #endif
+
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+# define ltohl(x)   (x)
+# define ltohs(x)   (x)
+# define htoll(x)   (x)
+# define htols(x)   (x)
+#elif __BYTE_ORDER == __BIG_ENDIAN
+# define ltohl(x)   __bswap_32(x)
+# define ltohs(x)   __bswap_16(x)
+# define htoll(x)   __bswap_32(x)
+# define htols(x)   __bswap_16(x)
+#endif
+
+static int timespec_check(struct timespec *t);
+static void timespec_sub(struct timespec *t1, struct timespec *t2);
 
 uint64_t getopt_integer(char *optarg) {
 	int rc;
@@ -27,30 +39,22 @@ uint64_t getopt_integer(char *optarg) {
 }
 
 void writeUser(void *baseAddr, off_t offset, uint32_t val) {
-	*((uint32_t*)(baseAddr + offset)) = val;
+	*((uint32_t*)(baseAddr + offset)) = htoll(val);
 }
 
 uint32_t readUser(void *baseAddr, off_t offset) {
-	return *((uint32_t *)(baseAddr + offset));
+	return ltohl(*((uint32_t *)(baseAddr + offset)));
 }
 
-/*
-    @brief
-        Check the intrrupt whether is triggered within timeout.
-    @param fs: file description of irq event
-    @param irq: interrupt name
-    @param timeout: return failed if timeout, unit: second
-*/
-int eventTriggered(int fd, irq_e irq, long timeout) {
+int checkTXCompleted(void *baseAddr, long timeout) {
     struct timespec ts_start, ts_cur;
     long total_time = 0;
-    ssize_t rc;
-    uint32_t irq_value;
+    time_t cur_time;
 
 #ifdef __USE_ISOC11
 # ifndef __USE_TIME_BITS64
-        rc = timespec_get(&ts_start, TIME_UTC);
-        rc = timespec_get(&ts_cur, TIME_UTC);
+    timespec_get(&ts_start, TIME_UTC);
+    timespec_get(&ts_cur, TIME_UTC);
 # endif
 #elif defined __USE_POSIX199309
 # ifndef __USE_TIME_BITS64
@@ -59,74 +63,56 @@ int eventTriggered(int fd, irq_e irq, long timeout) {
 # endif
 #endif
 
-    while(total_time < timeout) {
-        irq_value = readEvent(fd);
-        
-        if (irq_value & (uint32_t)(1 << irq)) {
-            if (verbose) {
-                fprintf(stdout, "Interrupt %d triggered successful.\n", irq);
-            }
-            break;
+    while (total_time < timeout) {
+        if (readUser(baseAddr, TX_DONE_RW_ADDR) == 0x00000001) {
+            writeUser(baseAddr, TX_DONE_RW_ADDR, 0x00);
+            return 0;
         }
 
         timespec_sub(&ts_cur, &ts_start);
         total_time += ts_cur.tv_sec;
+        sleep(0.5);
     }
 
-    if (total_time < timeout) {
+    return -1;
+}
+
+/*
+    @brief
+        Check the intrrupt whether is triggered.
+    @param fs: file description of irq event
+    @param irq: interrupt name
+*/
+int eventTriggered(int fd, irq_e irq) {
+    ssize_t rc;
+    uint32_t irq_value;
+
+
+    irq_value = readEvent(fd);
+        
+    if (irq_value & (uint32_t)(1 << irq)) {
+        if (verbose) {
+            fprintf(stdout, "Interrupt %d triggered successful.\n", irq);
+        }
         return 0;
     }
 
     return -1;
 }
 
-#ifdef IN_PROD
-void clearIRQ(void *baseAddr, int irq) {
-    uint32_t irq_value = readUser(baseAddr, IRQ_REG_OFFSET);
-    
-    switch (irq)
-    {
-        case IRQ_TX1:{
-            writeUser(baseAddr, IRQ_REG_OFFSET, irq_value & 0xfffffffd);
-            break;
-        }
-        case IRQ_TX2:{
-            writeUser(baseAddr, IRQ_REG_OFFSET, irq_value & 0xfffffffb);
-            break;
-        }
-        case IRQ_TICK:{
-            writeUser(baseAddr, IRQ_REG_OFFSET, irq_value & 0xfffffff7);
-            break;
-        }
-        case IRQ_RX1:{
-            writeUser(baseAddr, IRQ_REG_OFFSET, irq_value & 0xffffffef);
-            break;
-        }
-        case IRQ_RX2:{
-            writeUser(baseAddr, IRQ_REG_OFFSET, irq_value & 0xffffffdf);
-            break;
-        }
-        default:
-            break;
-    }
-}
-#else
 /*
 	@brief
         Clear the triggered interrupt, irq
 */
 void clearIRQ(void *baseAddr, irq_e irq) {
-    uint32_t irq_value = readUser(baseAddr, IRQ_CONTROL_REG_OFFSET);
+    uint32_t irq_value = readUser(baseAddr, IRQ_CONTROL_RW_ADDR);
 
-    writeUser(baseAddr, IRQ_CONTROL_REG_OFFSET, irq_value & ~(1 << irq));
+    writeUser(baseAddr, IRQ_CONTROL_RW_ADDR, irq_value & ~(1 << irq));
 }
-#endif
 
 void reset_xdma(void *userAddr) {
-    writeUser(userAddr, FPGA_MODE_REG_OFFSET, FPGA_MODE_RESET);
+    writeUser(userAddr, FPGA_MODE_RO_ADDR, FPGA_MODE_RESET);
 }
-
-///////////////////////////////////////////////// xdma0_h2c
 
 int openH2C(char *devName) {
     int fd;
@@ -147,7 +133,7 @@ void writeH2C(int fd, uint64_t baseAddr, void *frameBufferPtr, size_t size) {
   
     rc = lseek(fd, offset, SEEK_SET);
     if (rc != offset) {
-        fprintf(stderr, "%s, seek off 0x%lx != 0x%lx.\n", fd, rc, offset);
+        fprintf(stderr, "%d, seek off 0x%lx != 0x%lx.\n", fd, rc, offset);
         perror("seek file");
         return;
     }
@@ -155,11 +141,11 @@ void writeH2C(int fd, uint64_t baseAddr, void *frameBufferPtr, size_t size) {
     rc = write(fd, frameBufferPtr, size);
     
     if (rc < 0) {
-        fprintf(stderr, "%s, write 0x%lx @ 0x%lx failed %ld.\n", fd, size, offset, rc);
+        fprintf(stderr, "%d, write 0x%lx @ 0x%lx failed %ld.\n", fd, size, offset, rc);
 		perror("write file");
     }
     else {
-        printf("writing %d bytes into a %d bytes buffer\n", size, rc);
+        printf("writing %ld bytes into a %ld bytes buffer\n", size, rc);
     }
 }
 
@@ -168,17 +154,15 @@ uint32_t readEvent(int fd)
 	uint32_t val;
     ssize_t rc;
 
-	rc = read(fd, (void*)&val, 4);
+	rc = read(fd, &val, sizeof(val));
     if (rc != 4) {
-        fprintf(stderr, "%s, read 0x04 @ 0 failed %ld.\n", fd, rc);
+        fprintf(stderr, "%d, read 0x04 @ 0 failed %ld.\n", fd, rc);
         perror("read file");
         return -EIO;
     }
 
 	return val;
 }
-
-///////////////////////////////////////////////// xdma0_c2h
 
 int openC2H(char *devName) {
     int fd;
@@ -199,7 +183,7 @@ void readC2H(int fd, uint64_t baseAddr, void *frameBufferPtr, size_t size) {
 
     rc = lseek(fd, offset, SEEK_SET);
     if (rc != offset) {
-        fprintf(stderr, "%s, seek off 0x%lx != 0x%lx.\n", fd, rc, offset);
+        fprintf(stderr, "%d, seek off 0x%lx != 0x%lx.\n", fd, rc, offset);
         perror("seek file");
         return;
     }
@@ -207,30 +191,16 @@ void readC2H(int fd, uint64_t baseAddr, void *frameBufferPtr, size_t size) {
     rc = read(fd, frameBufferPtr, size);
 
     if (rc < 0) {
-        fprintf(stderr, "%s, read 0x%lx @ 0x%lx failed %ld.\n", fd, size, offset, rc);
+        fprintf(stderr, "%d, read 0x%lx @ 0x%lx failed %ld.\n", fd, size, offset, rc);
 		perror("read file");
     }
     else {
-        printf("reading %d bytes of a %d bytes buffer\n", size, rc);
+        printf("reading %ld bytes of a %ld bytes buffer\n", size, rc);
     }
 }
 
 frame char2frame(char *frame){
     return strtoul(frame, NULL, 2);
-}
-
-/*
-    Return size of ALL file in bytes
-*/
-off_t getFileSize(const char *filename) {
-    struct stat statbuff;
-    
-    if(stat(filename, &statbuff) < 0) {  
-        return 0;
-    }
-    else {
-        return statbuff.st_size;
-    }
 }
 
 int long2bin(const frame *dec, char *bin){
@@ -285,7 +255,7 @@ int read_txt_to_frame(int fd, configFrames *frameBufferPtr, size_t frameNumber) 
     }
 
     frameBufferPtr->size = frameNumber*8;// 1 frame = 8 buffersize
-    printf("reading config frame, frameNumber: %d, bufferSize: %d\n", frameNumber, frameNumber*8);
+    printf("reading config frame, frameNumber: %ld, bufferSize: %ld\n", frameNumber, frameNumber*8);
 
 out:
     close(fd);
@@ -311,7 +281,8 @@ static int timespec_check(struct timespec *t)
 {
 	if ((t->tv_nsec < 0) || (t->tv_nsec >= 1000000000))
 		return -1;
-	return 0;
+	
+    return 0;
 }
 
 static void timespec_sub(struct timespec *t1, struct timespec *t2)
@@ -326,12 +297,15 @@ static void timespec_sub(struct timespec *t1, struct timespec *t2)
 			(long long)t2->tv_sec, t2->tv_nsec);
 		return;
 	}
-	t1->tv_sec -= t2->tv_sec;
+	
+    t1->tv_sec -= t2->tv_sec;
 	t1->tv_nsec -= t2->tv_nsec;
-	if (t1->tv_nsec >= 1000000000) {
+	
+    if (t1->tv_nsec >= 1000000000) {
 		t1->tv_sec++;
 		t1->tv_nsec -= 1000000000;
-	} else if (t1->tv_nsec < 0) {
+	} 
+    else if (t1->tv_nsec < 0) {
 		t1->tv_sec--;
 		t1->tv_nsec += 1000000000;
 	}
