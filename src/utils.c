@@ -77,6 +77,36 @@ int checkTXCompleted(void *baseAddr, long timeout) {
     return -1;
 }
 
+int checkRXCompleted(void *baseAddr, long timeout) {
+    struct timespec ts_start, ts_cur;
+    long total_time = 0;
+    time_t cur_time;
+
+#ifdef __USE_ISOC11
+# ifndef __USE_TIME_BITS64
+    timespec_get(&ts_start, TIME_UTC);
+    timespec_get(&ts_cur, TIME_UTC);
+# endif
+#elif defined __USE_POSIX199309
+# ifndef __USE_TIME_BITS64
+    rc = clock_gettime(CLOCK_MONOTONIC, &ts_start);
+    rc = clock_gettime(CLOCK_MONOTONIC, &ts_cur);
+# endif
+#endif
+
+    while (total_time < timeout) {
+        if ((readUser(baseAddr, TX_DONE_RW_ADDR) & 0x00000002) == 0x00000002) {
+            return 0;
+        }
+
+        timespec_sub(&ts_cur, &ts_start);
+        total_time += ts_cur.tv_sec;
+        sleep(0.5);
+    }
+
+    return -1;
+}
+
 /*
     @brief
         Check the intrrupt whether is triggered.
@@ -199,19 +229,16 @@ void readC2H(int fd, uint64_t baseAddr, void *frameBufferPtr, size_t size) {
     }
 }
 
-frame char2frame(char *frame){
-    return strtoul(frame, NULL, 2);
-}
-
-int long2bin(const frame *dec, char *bin){
-    if(bin == NULL)
+int long2bin(const frame *dec, char *bin) {
+    if (bin == NULL)
         return -1;
     
     char *start = bin;
     frame dec_tmp = *dec;
     int i = 64;
-    while(i > 0){
-        if(dec_tmp & 0x1)
+    
+    while (i > 0) {
+        if (dec_tmp & 0x1)
             *bin++ = 0x31;
         else
             *bin++ = 0x30;
@@ -223,9 +250,46 @@ int long2bin(const frame *dec, char *bin){
     *bin = 0;
     //reverse the order
     char *low, *high, temp;
-    low = start, high = bin - 1;
+    low = start;
+    high = bin - 1;
     
-    while(low < high){
+    while (low < high){
+        temp = *low;
+        *low = *high;
+        *high = temp;
+ 
+        ++low; 
+        --high;
+    }
+
+    return 0;
+}
+
+int int2bin(const int* dec, char *bin) {
+    if (bin == NULL)
+        return -1;
+    
+    char *start = bin;
+    frame dec_tmp = *dec;
+    int i = 32;
+    
+    while (i > 0) {
+        if (dec_tmp & 0x1)
+            *bin++ = 0x31;
+        else
+            *bin++ = 0x30;
+ 
+        dec_tmp >>= 1;
+        i--;
+    }
+ 
+    *bin = 0;
+    //reverse the order
+    char *low, *high, temp;
+    low = start;
+    high = bin - 1;
+    
+    while (low < high){
         temp = *low;
         *low = *high;
         *high = temp;
@@ -234,47 +298,6 @@ int long2bin(const frame *dec, char *bin){
         --high;
     }
     return 0;
-}
-
-///////////////////////////////////////////////// configFrame
-
-int read_txt_to_frame(int fd, configFrames *frameBufferPtr, size_t frameNumber) {
-    char lineBuffer[65];
-    int i;
-    ssize_t rc;
-
-    for(i = 0; i < frameNumber; i++){
-        rc = read(fd, lineBuffer, 65);
-        
-        if (rc < 0 || rc < 65) {
-            goto out;
-        }
-
-        lineBuffer[64] = '\0';
-        frameBufferPtr->frames[i] = char2frame(lineBuffer);
-    }
-
-    frameBufferPtr->size = frameNumber*8;// 1 frame = 8 buffersize
-    printf("reading config frame, frameNumber: %ld, bufferSize: %ld\n", frameNumber, frameNumber*8);
-
-out:
-    close(fd);
-    if (rc < 0)
-        return rc;
-    
-    return 1;
-}
-
-///////////////////////////////////////////////// workFrame
-
-int openFrame(char *filePath) {
-    int fd = open(filePath, O_RDONLY);
-    if(fd == -1)
-    {
-        printf("open txt %s error\n", filePath);
-        return -1;
-    }
-    return fd;
 }
 
 static int timespec_check(struct timespec *t)

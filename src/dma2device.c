@@ -13,13 +13,13 @@ extern int verbose;
 	@brief
 		Read frames file into buffer then send to device
 	
-	@param devname: Device name of XDMA host2card channel
+	@param devname: Device name of XDMA h2c channel
 	@param user_reg: Name of user registers: /dev/xdma0_user
 	@param irq_ch1: IRQ name of channel 1
 	@param infname: Name of frames file to be read
 	@param work_mode: work in which mode
 */
-int frames2device(char *devname, char *user_reg, char *irq_ch1, char *infname, int work_mode) {
+int framesFileToDevice(char *devname, char *user_reg, char *irq_ch1, char *infname, int work_mode) {
 	ssize_t rc;
 	int mode = FPGA_MODE_UNKNOWN;
 	size_t bytes_done = 0;
@@ -93,10 +93,10 @@ int frames2device(char *devname, char *user_reg, char *irq_ch1, char *infname, i
 	}
 
 	/* 2. Allocate for frames buffer */
-	FramesBuffer = (frameBuffer*)malloc(sizeof(configFrames));
+	FramesBuffer = (frameBuffer*)malloc(sizeof(frameBuffer));
 	if (!FramesBuffer) {
 		fprintf(stderr, "unable to malloc\n");
-		perror("malloc config buffer");
+		perror("malloc frames buffer");
 		rc = -EINVAL;
 		goto out;
 	}
@@ -128,7 +128,6 @@ int frames2device(char *devname, char *user_reg, char *irq_ch1, char *infname, i
 		- size = frame_num * 8
 	*/
 	FramesBuffer->size = (uint64_t)(inf_size / 65 * 8);
-	FramesBuffer->offset = 0;
 
 	posix_memalign((void **)&allocated, 4096 /* alignment */ , FramesBuffer->size + 4096);
 	if (!allocated) {
@@ -144,7 +143,7 @@ int frames2device(char *devname, char *user_reg, char *irq_ch1, char *infname, i
 
 	/* 3. Read configuration frames from file to buffer */
 	if (infile_fd >= 0) {
-		rc = read_txt_to_buffer(infname, infile_fd, FramesBuffer->frames, FramesBuffer->size, 0);
+		rc = read_txt_to_buffer(infname, infile_fd, FramesBuffer, 0);
 		if (rc < 0 || rc < FramesBuffer->size)
 			goto out;
 	}
@@ -181,6 +180,149 @@ out:
 		
 	if (infile_fd >= 0) {
 		close(infile_fd);
+	}
+	
+	free(FramesBuffer);
+	free(allocated);
+
+	if (rc < 0)
+		return rc;
+	
+	return 0;
+}
+
+/*
+	@brief
+		Receives frames then saves into a file.
+	
+	@param devname: Device name of XDMA c2h channel
+	@param user_reg: Name of user registers: /dev/xdma0_user
+	@param irq_ch1: IRQ name of channel 1
+	@param ofname: Name of frames file to be saved
+	@param work_mode: work in which mode
+*/
+int deviceToFramesFile(char *devname, char *user_reg, char *irq_ch1, char *ofname) {
+	ssize_t rc;
+	size_t bytes_done = 0;
+    frameBuffer* FramesBuffer = NULL;
+    frame* allocated = NULL;
+	
+	void* user_addr = NULL;	/* Base address of user registers */
+	int user_reg_fd = -1;
+	int irq_ch1_fd = -1;
+	int outfile_fd = -1;
+	int c2h_fd = open(devname, O_RDONLY);
+	off_t offset = 0;
+
+	/* 1. Check devices, files, memory mapping */
+	if (c2h_fd < 0) {
+		fprintf(stderr, "unable to open device %s, %d.\n", devname, c2h_fd);
+		perror("open device");
+		return -ENXIO;
+	}
+
+	user_reg_fd = open(user_reg, O_RDWR | O_SYNC);
+	if (user_reg_fd < 0) {
+        fprintf(stderr, "unable to open user registers %s, %d.\n", user_reg, user_reg_fd);
+		perror("open device");
+		rc = -ENXIO;
+		goto out;
+    }
+
+	user_addr = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, user_reg_fd, 0);
+	if (user_addr == (void*)-1) {
+		fprintf(stderr, "Memory mapped failed.\n");
+		perror("mmap error\n");
+		rc = -ENOMEM;
+		goto out;
+	}
+
+	if (ofname) {
+		outfile_fd = open(ofname, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH); /* 0666 */
+		if (outfile_fd < 0) {
+			fprintf(stderr, "unable to open output file %s, %d.\n", ofname, outfile_fd);
+			perror("open output file");
+			rc = -ENOENT;
+			goto out;
+		}
+	}
+
+	/* Move the cursor to the head */
+	// rc = lseek(outfile_fd, 0, SEEK_SET);
+	// if (rc != 0) {
+	// 	fprintf(stderr, "unable to move the cursor to the head.\n");
+	// 	perror("move the cursor");
+	// 	rc = -EINVAL;
+	// 	goto out;
+	// }
+
+	/* 2. Allocate for frames buffer */
+	FramesBuffer = (frameBuffer*)malloc(sizeof(frameBuffer));
+	if (!FramesBuffer) {
+		fprintf(stderr, "unable to malloc\n");
+		perror("malloc frames buffer");
+		rc = -EINVAL;
+		goto out;
+	}
+
+	FramesBuffer->size = UPSTREAM_BRAM_SIZE;
+
+	posix_memalign((void **)&allocated, 4096 /* alignment */ , FramesBuffer->size + 4096);
+	if (!allocated) {
+		fprintf(stderr, "OOM %lu.\n", FramesBuffer->size + 4096);
+		rc = -ENOMEM;
+		goto out;
+	}
+
+	FramesBuffer->frames = allocated;
+
+	/* 3. Receive from BRAM via single channel */
+	rc = single_channel_receive(ofname, c2h_fd, user_addr, -1, UPSTREAM_BRAM_CH1_ADDR, FramesBuffer);
+
+	int index = 0;
+	uint64_t stop_frame = STOP_FRAME;
+	char frameChar[65];
+
+	frameChar[64] = '\n';
+
+	while (FramesBuffer->frames[index] != stop_frame) {
+		long2bin(FramesBuffer->frames, frameChar);
+
+		rc = lseek(outfile_fd, offset, SEEK_SET);
+		if (rc != offset) {
+			fprintf(stderr, "%s, seek off 0x%lx != 0x%lx.\n", ofname, rc, offset);
+			perror("seek file");
+			rc =  -EIO;
+			goto out;
+		}
+		
+		rc = write(outfile_fd, frameChar, 64);
+		if (rc < 0 || rc != 64) {
+			fprintf(stderr, "%s, write 0x40 @ 0x%lx failed %ld.\n",
+				ofname, offset, rc);
+			perror("write file");
+			rc = -EIO;
+			goto out;
+		}
+
+		offset += rc;
+		index++;
+	}
+
+	/* Last, if failed or finished, close and free */
+out:
+	close(c2h_fd);
+	
+	if (user_reg_fd >= 0) {
+		close(user_reg_fd);
+	}
+
+	if (irq_ch1_fd >= 0) {
+		close(irq_ch1_fd);
+	}
+		
+	if (outfile_fd >= 0) {
+		close(outfile_fd);
 	}
 	
 	free(FramesBuffer);

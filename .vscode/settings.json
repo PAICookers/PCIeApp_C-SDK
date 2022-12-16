@@ -18,7 +18,14 @@
         "errno.h": "c",
         "time_t.h": "c",
         "stdint.h": "c",
-        "algorithm": "c"
+        "algorithm": "c",
+        "array": "c",
+        "string_view": "c",
+        "initializer_list": "c",
+        "utility": "c",
+        "stdio.h": "c",
+        "random": "c",
+        "ostream": "c"
     },
     "C_Cpp.default.includePath": [
         "./include"

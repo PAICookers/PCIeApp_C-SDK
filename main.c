@@ -9,7 +9,6 @@ static struct option const long_opts[] = {
     {"user_registers", required_argument, NULL, 'u'},
     {"mode", required_argument, NULL, 'm'},
     {"irq_name", required_argument, NULL, 'i'},
-    {"initNum", required_argument, NULL, 'n'},
     {"configframe_path", required_argument, NULL, 'c'},
     {"workframe_path", required_argument, NULL, 'w'},
     {"outputframe_path", required_argument, NULL, 'o'},
@@ -38,9 +37,6 @@ static void usage(const char* name) {
     fprintf(stdout, "  -%c (--%s) IRQ name\n",
 		long_opts[i].val, long_opts[i].name);
 	i++;
-    fprintf(stdout, "  -%c (--%s) number of initial frames in work frames\n",
-		long_opts[i].val, long_opts[i].name);
-	i++;
     fprintf(stdout, "  -%c (--%s) path of config frames\n",
 		long_opts[i].val, long_opts[i].name);
 	i++;
@@ -60,24 +56,26 @@ static void usage(const char* name) {
 
 int main(int argc, char *argv[]) {
     int cmd_opt;
-    char* dev_name = H2C_DEVICE_NAME_DEFAULT;
+    char* h2c_dev_name = H2C_DEVICE_NAME_DEFAULT;
+    char* c2h_dev_name = C2H_DEVICE_NAME_DEFAULT;
     char* user_reg = USER_REG_NAME_DEFAULT;
     char* irq_ch1_name = IRQ_CH1_NAME_DEFAULT;
     
     int mode = FPGA_MODE_CONFIG;
-    uint32_t initFrmNum = 0;
     char* configFramePath = CONFIG_FRAMES_PATH_DEFAULT;
     char* workFramePath = WORK_FRAMES_PATH_DEFAULT;
     char* outputFramePath = OUTPUT_FRAMES_PATH_DEFAULT;
 
-    while ((cmd_opt = getopt_long(argc, argv, "vhd:u:m:i:n:c:w:o:", long_opts, NULL)) != -1) {
+    ssize_t rc;
+
+    while ((cmd_opt = getopt_long(argc, argv, "vhd:u:m:i:c:w:o:", long_opts, NULL)) != -1) {
 		switch (cmd_opt) {
             case 0:
                 /* long option */
                 break;
             case 'd':
                 /* device name */
-                dev_name = strdup(optarg);
+                h2c_dev_name = strdup(optarg);
                 break;
             case 'u':
                 /* user registers name */
@@ -90,10 +88,6 @@ int main(int argc, char *argv[]) {
             case 'i':
                 /* irq name */
                 irq_ch1_name = strdup(optarg);
-                break;
-            case 'n':
-                /* number of initial frames */
-                initFrmNum = (uint32_t)getopt_integer(optarg);
                 break;
             case 'c':
                 /* path of config frames */
@@ -121,18 +115,19 @@ int main(int argc, char *argv[]) {
 	}
 
     if (verbose) {
-        fprintf(stdout, "device: %s,\nuser registers: %s,\nmode: %d,\nirq_ch1_name: %s,\ninitFrmNum: %d,\nconfigFramePath: %s,\nworkFramePath: %s,\noutputFramePath: %s\n\n", 
-            dev_name, user_reg, mode, irq_ch1_name, initFrmNum, configFramePath, workFramePath, outputFramePath);
+        fprintf(stdout, "device: %s,\nuser registers: %s,\nmode: %d,\nirq_ch1_name: %s,\nconfigFramePath: %s,\nworkFramePath: %s,\noutputFramePath: %s\n\n", 
+            h2c_dev_name, user_reg, mode, irq_ch1_name, configFramePath, workFramePath, outputFramePath);
     }
 
     /*
         Currently, a transaction use an individual program
     */
     if (mode == FPGA_MODE_CONFIG) {
-        return frames2device(dev_name, user_reg, irq_ch1_name, configFramePath, mode);
+        return framesFileToDevice(h2c_dev_name, user_reg, irq_ch1_name, configFramePath, mode);
     }
     else if (mode == FPGA_MODE_WORK){
-        return frames2device(dev_name, user_reg, irq_ch1_name, workFramePath, mode);
+        rc = framesFileToDevice(h2c_dev_name, user_reg, irq_ch1_name, workFramePath, mode);
+        rc = deviceToFramesFile(c2h_dev_name, user_reg, irq_ch1_name, outputFramePath);
     }
     
     return -1;
