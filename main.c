@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
     }
     else if (mode == FPGA_MODE_WORK){
         rc = framesFileToDevice(h2c_dev_name, user_reg, irq_ch1_name, workFramePath, mode);
-        rc = deviceToFramesFile(c2h_dev_name, user_reg, irq_ch1_name, outputFramePath);
+        // rc = deviceToFramesFile(c2h_dev_name, user_reg, irq_ch1_name, outputFramePath);
     }
     
     return -1;

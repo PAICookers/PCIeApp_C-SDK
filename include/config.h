@@ -19,6 +19,7 @@ extern "C" {
 #endif
 
 #define SINGLE_CHANNEL
+#define BIN_MODE
 
 /* Names of devices, files path */
 #define H2C_DEVICE_NAME_DEFAULT     "/dev/xdma0_h2c_0"
@@ -42,6 +43,7 @@ extern "C" {
 # define RX_STATUS_RW_ADDR      (0x10)  /* RX status register */
 # define TRANS_INFO_RW_ADDR     (0x14)  /* Transaction information register */
 # define TX_DONE_RW_ADDR        (0x18)  /* TODO Polling. */
+# define TX_BYTES_NUM_ADDR      (0x20)  /* TX writing bytes number register */
 
 /* In H2C/C2H channel status register */
 # define CHANNEL_DEBUG_OFFSET   (0x40) /* Address of H2C/C2H channel status register. See P132 */

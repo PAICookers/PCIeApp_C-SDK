@@ -117,7 +117,6 @@ int eventTriggered(int fd, irq_e irq) {
     ssize_t rc;
     uint32_t irq_value;
 
-
     irq_value = readEvent(fd);
         
     if (irq_value & (uint32_t)(1 << irq)) {

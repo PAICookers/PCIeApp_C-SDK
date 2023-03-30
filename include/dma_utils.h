@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 ssize_t read_txt_to_buffer(char *fname, int fd, frameBuffer *buffer, uint64_t base);
+ssize_t read_bin_to_buffer(char *fname, int fd, frameBuffer *buffer, uint64_t base);
 ssize_t single_channel_send(char *fname, int fpga_fd, void *user_addr, int irq_fd,  \
     uint64_t addr, frameBuffer *buffer);
 ssize_t double_channel_send(char* fname, int fpga_fd, void *user_addr, int irq_fd1, int irq_fd2,    \

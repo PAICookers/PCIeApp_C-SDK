@@ -7,7 +7,7 @@ work=${5:-"./test/input.txt"}
 output=${6:-"./test/output.txt"}
 
 # Send config frames
-./build/pcie_app -d ${device} -u ${user_reg} -m 1 -i ${irq_name} -n 0 -c ${config} -w ${work} -o ${output}
+./build/pcie_app -d ${device} -u ${user_reg} -m 1 -i ${irq_name} -c ${config} -w ${work} -o ${output}
 
 if [ $? -ne 0 ]; then
     echo "Error: $?"
@@ -16,10 +16,10 @@ fi
 echo "Send configuration frames file OK"
 
 # Send work frames
-./build/pcie_app -d ${device} -u ${user_reg} -m 2 -i ${irq_name} -n 0 -c ${config} -w ${work} -o ${output}
+# ./build/pcie_app -d ${device} -u ${user_reg} -m 2 -i ${irq_name} -c ${config} -w ${work} -o ${output}
 
-if [ $? -ne 0 ]; then
-    echo "Error: $?"
-    exit 1
-fi
-echo "Send work frames file OK"
+# if [ $? -ne 0 ]; then
+#     echo "Error: $?"
+#     exit 1
+# fi
+# echo "Send work frames file OK"

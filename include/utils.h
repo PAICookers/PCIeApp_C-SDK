@@ -11,8 +11,8 @@ extern "C" {
 typedef uint64_t frame;
 
 typedef struct frameBuffer_struct {
-    frame* frames;      // Base address of frames data
-    uint64_t size;      // size in bytes
+    frame* frames;  // Base address of frames data
+    ssize_t size;   // size in bytes
 } frameBuffer;
 
 typedef frameBuffer dataFrames;

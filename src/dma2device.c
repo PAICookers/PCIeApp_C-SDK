@@ -127,7 +127,12 @@ int framesFileToDevice(char *devname, char *user_reg, char *irq_ch1, char *infna
 		- FramesBuffer->size = 2 frames(64-bits) = 16 bytes
 		- size = frame_num * 8
 	*/
+#ifdef TXT_MODE
 	FramesBuffer->size = (uint64_t)(inf_size / 65 * 8);
+#endif
+#ifdef BIN_MODE
+	FramesBuffer->size = inf_size;
+#endif
 
 	posix_memalign((void **)&allocated, 4096 /* alignment */ , FramesBuffer->size + 4096);
 	if (!allocated) {
@@ -143,14 +148,21 @@ int framesFileToDevice(char *devname, char *user_reg, char *irq_ch1, char *infna
 
 	/* 3. Read configuration frames from file to buffer */
 	if (infile_fd >= 0) {
+#ifdef TXT_MODE
 		rc = read_txt_to_buffer(infname, infile_fd, FramesBuffer, 0);
+#endif
+#ifdef BIN_MODE
+		rc = read_bin_to_buffer(infname, infile_fd, FramesBuffer, 0);
+#endif
 		if (rc < 0 || rc < FramesBuffer->size)
 			goto out;
 	}
 
-	// for (int i = 0; i < FramesBuffer->size / 8; i++) {
-	// 	printf("%d: 0x%lx\n", i, FramesBuffer->frames[i]);
-	// }
+	if (verbose) {
+		for (int i = 0; i < FramesBuffer->size; i++) {
+			printf("%d: 0x%lx\n", i, FramesBuffer->frames[i]);
+		}
+	}
 
 	/* 4. Send to BRAM via single channel */
 	rc = single_channel_send(infname, h2c_fd, user_addr, irq_ch1_fd, DOWNSTREAM_BRAM_CH1_ADDR, FramesBuffer);
@@ -158,7 +170,7 @@ int framesFileToDevice(char *devname, char *user_reg, char *irq_ch1, char *infna
 		fprintf(stderr, "Sending %s to device %d, address 0x%x via channel %d failed, rc=%ld\n", 
 			infname, h2c_fd, DOWNSTREAM_BRAM_CH1_ADDR, irq_ch1_fd, rc);
 		perror("send data");
-		rc =  -EINVAL;
+		rc = -EINVAL;
 		goto out;
 	}
 
@@ -278,6 +290,14 @@ int deviceToFramesFile(char *devname, char *user_reg, char *irq_ch1, char *ofnam
 
 	/* 3. Receive from BRAM via single channel */
 	rc = single_channel_receive(ofname, c2h_fd, user_addr, -1, UPSTREAM_BRAM_CH1_ADDR, FramesBuffer);
+
+	if (rc < 0) {
+		fprintf(stderr, "Receiving %s from device %d, address 0x%x via channel %d failed, rc=%ld\n", 
+			ofname, c2h_fd, UPSTREAM_BRAM_CH1_ADDR, irq_ch1_fd, rc);
+		perror("receive data");
+		rc = -EINVAL;
+		goto out;
+	}
 
 	int index = 0;
 	uint64_t stop_frame = STOP_FRAME;
