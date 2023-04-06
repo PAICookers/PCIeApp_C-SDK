@@ -74,7 +74,7 @@ ssize_t read_bin_to_buffer(char *fname, int fd, FrameBuffer *buffer, uint64_t ba
 int main(int argc, char **argv)
 {
 	char *infname = "./test/config.bin";
-	char *txtname = "./test/config.txt";
+	// char *txtname = "./test/config.txt";
 	int rc;
 
 	int infile_fd = open(infname, O_RDONLY);
@@ -86,14 +86,14 @@ int main(int argc, char **argv)
 		goto out;
 	}
 
-	int intxt_fd = open(txtname, O_RDONLY);
-	if (intxt_fd < 0)
-	{
-		fprintf(stderr, "unable to open input file %s, %d.\n", txtname, intxt_fd);
-		perror("open input file");
-		rc = -1;
-		goto out;
-	}
+	// int intxt_fd = open(txtname, O_RDONLY);
+	// if (intxt_fd < 0)
+	// {
+	// 	fprintf(stderr, "unable to open input file %s, %d.\n", txtname, intxt_fd);
+	// 	perror("open input file");
+	// 	rc = -1;
+	// 	goto out;
+	// }
 
 	/* txt test */
 	// rc = lseek(intxt_fd, 0, SEEK_SET);

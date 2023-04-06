@@ -11,4 +11,4 @@ set (CMAKE_CXX_FLAGS “${CMAKE_CXX_FLAGS} -g -Wall”)
 # include_directories(include)
 # aux_source_directory(./src src)
 
-add_executable(pcie_test test.c)
+add_executable(pcie_test test/test.c)
