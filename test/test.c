@@ -3,24 +3,20 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
-
 #include <byteswap.h>
 
 typedef uint64_t frame;
-
 typedef struct FrameBuffer_TypeDef
 {
 	frame *frames; // Base address of frames data
 	ssize_t size;  // size in bytes
 } FrameBuffer;
 
-ssize_t read_bin_to_buffer(char *fname, int fd, FrameBuffer *buffer, uint64_t base)
+ssize_t read_bin_to_buffer(char *fname, int fd, FrameBuffer *buffer, ssize_t size, uint64_t base)
 {
 	ssize_t rc;
 	uint64_t count = 0; // size in bytes
-	frame *temp;
 	frame *buf = buffer->frames;
-	ssize_t size = buffer->size; // frames num
 	off_t offset = base;
 	int loop = 0;
 
@@ -35,8 +31,8 @@ ssize_t read_bin_to_buffer(char *fname, int fd, FrameBuffer *buffer, uint64_t ba
 		}
 
 		/* read data from file into bin buffer */
-		rc = read(fd, (void *)temp, 8);
-		*buf = __bswap_64(*temp);
+		rc = read(fd, (void *)buf, 8);
+		*buf = bswap_64(*buf);
 
 		if (rc < 0)
 		{
@@ -57,11 +53,13 @@ ssize_t read_bin_to_buffer(char *fname, int fd, FrameBuffer *buffer, uint64_t ba
 		loop++;
 	}
 
+	buffer->size = size;
+
 	if (count != size && loop)
 		fprintf(stderr, "%s, read underflow 0x%lx/0x%lx.\n", fname, count, size);
 
 	// Check the data in cache
-	printf("rc = %ld, size = %ld, count = %ld\n", rc, size, count);
+	printf("count = %ld, loop = %d\n", count, loop);
 
 	for (int i = 0; i < size; i++)
 	{
@@ -86,35 +84,6 @@ int main(int argc, char **argv)
 		goto out;
 	}
 
-	// int intxt_fd = open(txtname, O_RDONLY);
-	// if (intxt_fd < 0)
-	// {
-	// 	fprintf(stderr, "unable to open input file %s, %d.\n", txtname, intxt_fd);
-	// 	perror("open input file");
-	// 	rc = -1;
-	// 	goto out;
-	// }
-
-	/* txt test */
-	// rc = lseek(intxt_fd, 0, SEEK_SET);
-	// if (rc != 0)
-	// {
-	// 	perror("seek file");
-	// 	return -1;
-	// }
-
-	// char line[65];
-	// uint64_t temp[2];
-
-	// /* read data from file into bin buffer */
-	// rc = read(intxt_fd, (void *)line, 65);
-	// line[64] = '\0';
-	// printf("line = %s\n", line);
-
-	// temp[0] = (uint64_t)strtoul(line, NULL, 2);
-
-	// printf("temp = 0x%lx\n", temp[0]);
-
 	int inf_size = lseek(infile_fd, 0, SEEK_END);
 	if (inf_size < 0)
 	{
@@ -133,7 +102,7 @@ int main(int argc, char **argv)
 	// 	goto out;
 	// }
 
-	printf("file_size = %d\n", inf_size); // =24
+	printf("file_size = %d\n", inf_size);
 
 	FrameBuffer *FramesBuffer = (FrameBuffer *)malloc(sizeof(FrameBuffer));
 	if (!FramesBuffer)
@@ -146,18 +115,17 @@ int main(int argc, char **argv)
 
 	frame *allocated = NULL;
 
-	posix_memalign((void **)&allocated, 4096 /* alignment */, FramesBuffer->size + 4096);
+	posix_memalign((void **)&allocated, 4096 /* alignment */, inf_size / 8 + 4096);
 	if (!allocated)
 	{
-		fprintf(stderr, "OOM %lu.\n", FramesBuffer->size + 4096);
+		fprintf(stderr, "OOM %u.\n", (inf_size/8 + 4096));
 		rc = -1;
 		goto out;
 	}
 
 	FramesBuffer->frames = allocated;
-	FramesBuffer->size = inf_size / 8;
 
-	rc = read_bin_to_buffer(infname, infile_fd, FramesBuffer, 0);
+	rc = read_bin_to_buffer(infname, infile_fd, FramesBuffer, inf_size / 8, 0);
 
 	printf("rc = %d\n", rc);
 

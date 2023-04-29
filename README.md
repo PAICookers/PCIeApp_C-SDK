@@ -2,4 +2,4 @@
 
 PCIe applications for XDMA in C
 
-Code in process. Please see [note](./docs/note.md) for details.
+Test branch. DO NOT USE.
