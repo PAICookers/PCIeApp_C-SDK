@@ -25,7 +25,7 @@ int FramesFile2Device(char *devname, char *user_reg, char *irq_ch1, char *infnam
 	ssize_t rc;
 	int mode = FPGA_MODE_UNKNOWN;
 	size_t bytes_done = 0;
-	frameBuffer *FramesBuffer = NULL;
+	FrameBuffer *FramesBuffer = NULL;
 	frame *allocated = NULL;
 
 	void *user_addr = NULL; /* Base address of user registers */
@@ -103,7 +103,7 @@ int FramesFile2Device(char *devname, char *user_reg, char *irq_ch1, char *infnam
 	}
 
 	/* 2. Allocate for frames buffer */
-	FramesBuffer = (frameBuffer *)malloc(sizeof(frameBuffer));
+	FramesBuffer = (FrameBuffer *)malloc(sizeof(FrameBuffer));
 	if (!FramesBuffer)
 	{
 		fprintf(stderr, "unable to malloc\n");
@@ -233,7 +233,7 @@ int deviceToFramesFile(char *devname, char *user_reg, char *irq_ch1, char *ofnam
 {
 	ssize_t rc;
 	size_t bytes_done = 0;
-	frameBuffer *FramesBuffer = NULL;
+	FrameBuffer *FramesBuffer = NULL;
 	frame *allocated = NULL;
 
 	void *user_addr = NULL; /* Base address of user registers */
@@ -291,7 +291,7 @@ int deviceToFramesFile(char *devname, char *user_reg, char *irq_ch1, char *ofnam
 	// }
 
 	/* 2. Allocate for frames buffer */
-	FramesBuffer = (frameBuffer *)malloc(sizeof(frameBuffer));
+	FramesBuffer = (FrameBuffer *)malloc(sizeof(FrameBuffer));
 	if (!FramesBuffer)
 	{
 		fprintf(stderr, "unable to malloc\n");

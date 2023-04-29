@@ -14,12 +14,12 @@
 #endif
 
 ssize_t write_from_buffer(char *fname, int fd, frame *buffer, uint64_t size, uint64_t base);
-ssize_t write_h2c_with_limit(char *fname, int fd, void *user_addr, int irq_fd, frameBuffer *buffer,
+ssize_t write_h2c_with_limit(char *fname, int fd, void *user_addr, int irq_fd, FrameBuffer *buffer,
 							 uint64_t base, uint64_t max_limit);
 
 extern int verbose;
 
-ssize_t receive_to_buffer(char *fname, int fd, frameBuffer *buffer, uint64_t base)
+ssize_t receive_to_buffer(char *fname, int fd, FrameBuffer *buffer, uint64_t base)
 {
 	ssize_t rc;
 	uint64_t count = 0;
@@ -86,7 +86,7 @@ ssize_t receive_to_buffer(char *fname, int fd, frameBuffer *buffer, uint64_t bas
 	@param base: Usually is 0
 */
 #ifdef TXT_MODE
-ssize_t read_txt_to_buffer(char *fname, int fd, frameBuffer *buffer, uint64_t base)
+ssize_t read_txt_to_buffer(char *fname, int fd, FrameBuffer *buffer, uint64_t base)
 {
 	ssize_t rc;
 	uint64_t count = 0; // size in bytes
@@ -156,7 +156,7 @@ ssize_t read_txt_to_buffer(char *fname, int fd, frameBuffer *buffer, uint64_t ba
 	@param size: The size of what to read in bytes
 	@param base: Usually is 0
 */
-ssize_t read_bin_to_buffer(char *fname, int fd, frameBuffer *buffer, ssize_t size, uint64_t base)
+ssize_t read_bin_to_buffer(char *fname, int fd, FrameBuffer *buffer, ssize_t size, uint64_t base)
 {
 	ssize_t rc;
 	uint64_t count = 0; // size in bytes
@@ -294,7 +294,7 @@ ssize_t write_from_buffer(char *fname, int fd, frame *buffer, uint64_t size, uin
 	@param size: The size of what to write in bytes
 */
 ssize_t write_h2c_with_limit(char *fname, int fd, void *user_addr, int irq_fd,
-							 frameBuffer *buffer, uint64_t base, uint64_t max_limit)
+							 FrameBuffer *buffer, uint64_t base, uint64_t max_limit)
 {
 	ssize_t rc;
 	uint64_t size = buffer->size;
@@ -341,7 +341,7 @@ ssize_t write_h2c_with_limit(char *fname, int fd, void *user_addr, int irq_fd,
 			break;
 		}
 
-		buf += bytes / BYTES_IN_ONE_LINE;
+		buf += bytes / 65;
 		offset += bytes;
 		loop++;
 
@@ -396,7 +396,7 @@ ssize_t write_h2c_with_limit(char *fname, int fd, void *user_addr, int irq_fd,
 
 		if (verbose)
 		{
-			fprintf(stdout, "Loop #%d: Send %ld frames(%ld bytes) successful.\n", loop, count / BYTES_IN_ONE_LINE, count);
+			fprintf(stdout, "Loop #%d: Send %ld frames(%ld bytes) successful.\n", loop, count / 65, count);
 		}
 
 		if (offset - base >= DOWNSTREAM_BRAM_SIZE)
@@ -424,7 +424,7 @@ ssize_t write_h2c_with_limit(char *fname, int fd, void *user_addr, int irq_fd,
 	@param addr: Address of where to write, H2C device
 	@param buffer: Pointer of frames buffer
 */
-ssize_t single_channel_send(char *fname, int fpga_fd, void *user_addr, int irq_fd, uint64_t addr, frameBuffer *buffer)
+ssize_t single_channel_send(char *fname, int fpga_fd, void *user_addr, int irq_fd, uint64_t addr, FrameBuffer *buffer)
 {
 	ssize_t rc;
 	uint32_t _read, tx_frames_num;
@@ -470,7 +470,7 @@ ssize_t single_channel_send(char *fname, int fpga_fd, void *user_addr, int irq_f
 	@param buffer: Pointer of frames buffer
 */
 ssize_t double_channel_send(char *fname, int fpga_fd, void *user_addr, int irq_fd1, int irq_fd2,
-							uint64_t addr1, uint64_t addr2, frameBuffer *buffer)
+							uint64_t addr1, uint64_t addr2, FrameBuffer *buffer)
 {
 }
 
@@ -485,7 +485,7 @@ ssize_t double_channel_send(char *fname, int fpga_fd, void *user_addr, int irq_f
 	@param addr: Address of where to write, C2H device, UPSTREAM_BRAM_ADDR
 	@param buffer: Pointer of frames buffer
 */
-ssize_t single_channel_receive(char *fname, int fpga_fd, void *user_addr, int irq_fd, uint64_t addr, frameBuffer *buffer)
+ssize_t single_channel_receive(char *fname, int fpga_fd, void *user_addr, int irq_fd, uint64_t addr, FrameBuffer *buffer)
 {
 	ssize_t rc;
 	uint32_t _read;

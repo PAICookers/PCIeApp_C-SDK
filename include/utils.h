@@ -10,13 +10,13 @@ extern "C" {
 
 typedef uint64_t frame;
 
-typedef struct frameBuffer_struct {
+typedef struct FrameBuffer_TypeDef {
     frame* frames;  // Base address of frames data
     ssize_t size;   // size in bytes
-} frameBuffer;
+} FrameBuffer;
 
-typedef frameBuffer dataFrames;
-typedef frameBuffer configFrames;
+typedef FrameBuffer dataFrames;
+typedef FrameBuffer configFrames;
 
 #ifdef IN_DEV
 typedef enum irq_name {
