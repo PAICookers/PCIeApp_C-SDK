@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#include <byteswap.h>
 #include <sys/types.h>
 
 #define RW_MAX_SIZE (0x7ffff000)
@@ -155,30 +156,27 @@ ssize_t read_txt_to_buffer(char *fname, int fd, frameBuffer *buffer, uint64_t ba
 	@param size: The size of what to read in bytes
 	@param base: Usually is 0
 */
-ssize_t read_bin_to_buffer(char *fname, int fd, frameBuffer *buffer, uint64_t base)
+ssize_t read_bin_to_buffer(char *fname, int fd, frameBuffer *buffer, ssize_t size, uint64_t base)
 {
 	ssize_t rc;
 	uint64_t count = 0; // size in bytes
 	frame *buf = buffer->frames;
-	ssize_t size = buffer->size;
 	off_t offset = base;
 	int loop = 0;
 
 	while (count < size)
 	{
-		if (offset)
+		rc = lseek(fd, offset, SEEK_SET);
+		if (rc != offset)
 		{
-			rc = lseek(fd, offset, SEEK_SET);
-			if (rc != offset)
-			{
-				fprintf(stderr, "%s, seek off 0x%lx != 0x%lx.\n", fname, rc, offset);
-				perror("seek file");
-				return -EIO;
-			}
+			fprintf(stderr, "%s, seek off 0x%lx != 0x%lx.\n", fname, rc, offset);
+			perror("seek file");
+			return -EIO;
 		}
 
 		/* read data from file into bin buffer */
 		rc = read(fd, (void *)buf, 8);
+		*buf = bswap_64(*buf);
 
 		if (rc < 0)
 		{
@@ -193,15 +191,26 @@ ssize_t read_bin_to_buffer(char *fname, int fd, frameBuffer *buffer, uint64_t ba
 			break;
 		}
 
-		buf += 8;
+		buf++;
 		offset += 8;
-
-		count += 8;
+		count++;
 		loop++;
 	}
 
+	buffer->size = size;
+
 	if (count != size && loop)
 		fprintf(stderr, "%s, read underflow 0x%lx/0x%lx.\n", fname, count, size);
+
+	if (verbose)
+	{
+		printf("count = %ld, loop = %d\n", count, loop);
+
+		for (int i = 0; i < size; i++)
+		{
+			printf("#%d: 0x%lx\n", i, *(buffer->frames + i));
+		}
+	}
 
 	return count;
 }
