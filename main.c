@@ -2,6 +2,7 @@
 #include "config.h"
 #include "dma2device.h"
 #include <unistd.h>
+#include <string.h>
 #include <getopt.h>
 
 static struct option const long_opts[] = {

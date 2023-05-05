@@ -450,7 +450,7 @@ ssize_t single_channel_send(char *fname, int fpga_fd, void *user_addr, int irq_f
 		1. # of sent frames is NOT correct.
 		2. The rest loops is NOT 0.
 	*/
-	if ((rc != buffer->size) || (_read & 0x000000FF != 0))
+	if ((rc != buffer->size) || ((_read & 0x000000FF) != 0))
 	{
 		fprintf(stderr, "write failed. Actual wrote: %ld.\nLoop(s) left: %d\n", rc, _read & 0x000000FF);
 	}
@@ -472,6 +472,7 @@ ssize_t single_channel_send(char *fname, int fpga_fd, void *user_addr, int irq_f
 ssize_t double_channel_send(char *fname, int fpga_fd, void *user_addr, int irq_fd1, int irq_fd2,
 							uint64_t addr1, uint64_t addr2, FrameBuffer *buffer)
 {
+	
 }
 
 /*

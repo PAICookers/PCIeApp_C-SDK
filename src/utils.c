@@ -77,7 +77,7 @@ int checkTXCompleted(void *baseAddr, long timeout)
 
         timespec_sub(&ts_cur, &ts_start);
         total_time = ts_cur.tv_sec;
-        sleep(0.5);
+        sleep(1);
     }
 
     return -1;
@@ -112,7 +112,7 @@ int checkRXCompleted(void *baseAddr, long timeout)
         timespec_sub(&ts_cur, &ts_start);
         total_time = ts_cur.tv_sec;
 
-        sleep(0.5);
+        sleep(1);
     }
 
     return -1;

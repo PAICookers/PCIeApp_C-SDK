@@ -7,7 +7,7 @@ work=${5:-"./test/input.txt"}
 output=${6:-"./test/output.txt"}
 
 # Send config frames
-./build/pcie_app -d ${device} -u ${user_reg} -m 1 -i ${irq_name} -c ${config} -w ${work} -o ${output}
+./build/bin/PCIeApp -d ${device} -u ${user_reg} -m 1 -i ${irq_name} -c ${config} -w ${work} -o ${output}
 
 if [ $? -ne 0 ]; then
     echo "Error: $?"

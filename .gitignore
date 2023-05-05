@@ -52,5 +52,6 @@ Mkfile.old
 dkms.conf
 
 build
-./test
+test
 .vscode
+.cache
